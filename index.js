@@ -1,11 +1,3 @@
-/*
-  *  Script By Kemii
-  *  Forbidden to delete my wm
-  *  Github : dcodekemii
-  *  Telegram : t.me/dcodekemi
-  *  WhatsApp : wa.me/628816609112
-*/
-
 const { default: makeWASocket, jidDecode, Browsers, DisconnectReason, useMultiFileAuthState } = require("@whiskeysockets/baileys")
 const readline = require("readline")
 const pino = require("pino")
@@ -67,6 +59,12 @@ async function System() {
                 )
             } else return jid
         }
+        
+
+        
+        if (global.autoTyping) {
+if (command) { xyu.sendPresenceUpdate('composing', from)}}
+
 
         if (global.settings.autoreact && msg.key.remoteJid === 'status@broadcast') {
             if (msg.key.fromMe) return
@@ -112,11 +110,11 @@ async function System() {
             console.log("- Pesan: ", msg.message.extendedTextMessage?.text || null)
         }
     })
-
-    sock.ev.on('call', async (update) => {
+sock.ev.on('call', async (update) => {
         const jid = update[0].chatId
         if (global.settings.anticall) {
-            return sock.sendMessage(jid, { text: 'Saat ini saya tidak dapat menerima panggilan anda.'})
+            return sock.sendMessage(jid, { text: 'Sorry, I am busy!'})
+        await sock.updateBlockStatus(jid, 'block')
         }       
     })
 

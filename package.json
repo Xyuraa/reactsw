@@ -1,19 +1,15 @@
 {
-  "name": "system",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "status"
-  ],
-  "author": "dcodekemii",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@whiskeysockets/baileys": "^6.7.7",
-    "pino": "^9.4.0",
-    "readline": "^1.3.0"
-  }
+    "name": "Auto View - WhatsApp Status",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "author": "KuroZann",
+    "license": "ISC",
+    "dependencies": {
+        "@whiskeysockets/baileys": "^6.7.8",
+        "pino": "^9.4.0",
+        "readline": "^1.3.0"
+    }
 }
