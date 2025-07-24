@@ -8,7 +8,7 @@
     "author": "Kemii",
     "license": "ISC",
     "dependencies": {
-        "@whiskeysockets/baileys": "github:seiren-primrose/PL-Baileys-Old",
+        "@whiskeysockets/baileys": "^6.7.7",
         "pino": "^9.4.0",
         "readline": "^1.3.0"
     }
