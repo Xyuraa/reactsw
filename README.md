@@ -69,6 +69,3 @@ global.emoji = [
 Pull Request dan issue sangat diterima!
 Fork repo ini dan bantu kembangkan fiturnya.
 
-## 🙏 Kredit
-
-Base dari: [@Kemii](https://github.com/HeyyKemii)
