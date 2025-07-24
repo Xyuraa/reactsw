@@ -2,7 +2,7 @@
 
 **(Built with JavaScript + Whiskeys.js)**
 
-Skrip otomatis untuk memberi reaksi (reaction emoji) pada **status WhatsApp** menggunakan **Whiskeys.js**, alat powerful untuk mengotomatisasi WhatsApp Web dengan JavaScript.
+Bot whatsapp otomatis untuk memberi reaksi (reaction emoji) pada **status WhatsApp** menggunakan **Whiskeys.js**, alat powerful untuk mengotomatisasi WhatsApp Web dengan JavaScript.
 
 ## ✨ Fitur
 
