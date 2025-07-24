@@ -9,9 +9,6 @@ Bot whatsapp otomatis untuk memberi reaksi (reaction emoji) pada **status WhatsA
 * 🔄 Auto Read Chat — otomatis menandai pesan masuk sebagai terbaca
 * 🚫 Anti Call — otomatis memblokir atau membalas saat ada panggilan masuk
 * ❤️ Auto React Status — memberikan reaksi emoji pada status kontak
-* ⚙️ Dapat dikonfigurasi berdasarkan nama kontak, kata kunci, atau acak
-* 🕒 Mendukung penjadwalan atau trigger waktu
-* 🧠 (Optional) Integrasi dengan AI untuk analisis teks/gambar status
 
 ## 🧰 Instalasi
 
