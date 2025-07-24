@@ -43,7 +43,7 @@ async function System() {
         } else if (connection === 'open') {
             process.stdout.write('\x1b[2J\x1b[0f')
             console.log('Koneksi tersambung')
-            console.log('- Name: ', sock.user.name ? sock.user.name : "Kemii")
+            console.log('- Name: ', sock.user.name ? sock.user.name : "Xyuraa")
         }
     })
 
