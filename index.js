@@ -15,6 +15,26 @@ const question = (text) => {
     })
 }
 
+// Auto delete isi folder 'sessions' setiap 5 menit agar tidak penuh
+const deleteSessionFiles = () => {
+    const sessionPath = path.join(__dirname, 'sessions')
+    if (fs.existsSync(sessionPath)) {
+        fs.readdir(sessionPath, (err, files) => {
+            if (err) return
+            for (const file of files) {
+                const filePath = path.join(sessionPath, file)
+                fs.unlink(filePath, (err) => {
+                    if (err) console.error(`Gagal hapus file: ${filePath}`)
+                })
+            }
+        })
+    }
+}
+
+// Setiap 5 menit (300000 ms), jalankan penghapusan
+setInterval(deleteSessionFiles, 5 * 60 * 1000)
+
+
 async function System() {
     const { state, saveCreds } = await useMultiFileAuthState('sessions')
     const sock = makeWASocket({ 
@@ -43,7 +63,7 @@ async function System() {
         } else if (connection === 'open') {
             process.stdout.write('\x1b[2J\x1b[0f')
             console.log('Koneksi tersambung')
-            console.log('- Name: ', sock.user.name ? sock.user.name : "Xyuraa")
+            console.log('- Name: ', sock.user.name ? sock.user.name : "Kemii")
         }
     })
 
@@ -110,13 +130,32 @@ if (command) { xyu.sendPresenceUpdate('composing', from)}}
             console.log("- Pesan: ", msg.message.extendedTextMessage?.text || null)
         }
     })
+    const callSpamTracker = {}
+
 sock.ev.on('call', async (update) => {
-        const jid = update[0].chatId
-        if (global.settings.anticall) {
-            return sock.sendMessage(jid, { text: 'Sorry, I am busy!'})
-        await sock.updateBlockStatus(jid, 'block')
-        }       
-    })
+    for (const call of update) {
+        const jid = call.chatId
+
+        if (global.settings.anticall && call.status === 'offer') {
+            if (!callSpamTracker[jid]) {
+                callSpamTracker[jid] = 1
+            } else {
+                callSpamTracker[jid]++
+            }
+            await sock.rejectCall(call.id, call.from)
+            await sock.sendMessage(jid, { text: `⚠️ Jangan melakukan panggilan! (${callSpamTracker[jid]}/5)` })
+            console.log(`Panggilan dari ${jid} ke-${callSpamTracker[jid]} ditolak.`)
+            if (callSpamTracker[jid] >= 5) {
+                await sock.sendMessage(jid, { text: `Kamu telah diblokir karena melakukan spam panggilan.` })
+                await sock.updateBlockStatus(jid, 'block')
+                console.log(`🔒 ${jid} telah diblokir karena spam call.`)
+                delete callSpamTracker[jid]
+            }
+        }
+    }
+})
+
+    
 
     sock.ev.on('creds.update', saveCreds)
 }
