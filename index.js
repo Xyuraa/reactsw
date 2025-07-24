@@ -22,7 +22,7 @@ async function System() {
         auth: state,
         printQRInTerminal: false,
         markOnlineOnConnect: false,
-        browser: Browsers.windows("Edge")
+        browser: ["Mac OS", "Safari", "10.15.7"],
     })
 
     if (!sock.authState.creds.registered) {
