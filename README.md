@@ -71,4 +71,4 @@ Fork repo ini dan bantu kembangkan fiturnya.
 
 ## 🙏 Kredit
 
-Base project dan inspirasi dari: [@Kemii]([https://github.com/sansekai/whiskeys.js](https://github.com/HeyyKemii))
+Base dari: [@Kemii](https://github.com/HeyyKemii)
