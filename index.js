@@ -1,7 +1,15 @@
 const { default: makeWASocket, jidDecode, Browsers, DisconnectReason, useMultiFileAuthState } = require("@whiskeysockets/baileys")
 const readline = require("readline")
 const pino = require("pino")
+const fs = require("fs")
+const path = require("path")
+const axios = require("axios")
+const { GoogleGenerativeAI } = require("@google/generative-ai")
 require('./settings')
+
+// Initialize Gemini AI with API key
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyBKOlaxWPG93FlJJMIggVYYAYZ126sHqvw")
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
 const question = (text) => {
     const rl = readline.createInterface({
@@ -11,29 +19,25 @@ const question = (text) => {
     return new Promise((resolve) => {
         rl.question(text, (answer) => {
             resolve(answer.trim())
+            rl.close()
         })
     })
 }
 
-// Auto delete isi folder 'sessions' setiap 5 menit agar tidak penuh
 const deleteSessionFiles = () => {
     const sessionPath = path.join(__dirname, 'sessions')
     if (fs.existsSync(sessionPath)) {
-        fs.readdir(sessionPath, (err, files) => {
-            if (err) return
-            for (const file of files) {
-                const filePath = path.join(sessionPath, file)
-                fs.unlink(filePath, (err) => {
-                    if (err) console.error(`Gagal hapus file: ${filePath}`)
-                })
-            }
-        })
+        try {
+            fs.rmSync(sessionPath, { recursive: true, force: true })
+            console.log('Session files deleted successfully.')
+        } catch (err) {
+            console.error(`Failed to delete session files: ${err.message}`)
+        }
     }
 }
 
-// Setiap 5 menit (300000 ms), jalankan penghapusan
-setInterval(deleteSessionFiles, 5 * 60 * 1000)
-
+// Run session cleanup every 24 hours
+setInterval(deleteSessionFiles, 24 * 60 * 60 * 1000)
 
 async function System() {
     const { state, saveCreds } = await useMultiFileAuthState('sessions')
@@ -70,6 +74,7 @@ async function System() {
     sock.ev.on('messages.upsert', async (update) => {
         const msg = update.messages[0]
         const maxTime = 5 * 60 * 1000
+
         sock.decodeJid = (jid) => {
             if (!jid) return jid
             if (/:\d+@/gi.test(jid)) {
@@ -79,12 +84,32 @@ async function System() {
                 )
             } else return jid
         }
-        
 
-        
         if (global.autoTyping) {
-if (command) { xyu.sendPresenceUpdate('composing', from)}}
+            const command = msg.message?.conversation || msg.message?.extendedTextMessage?.text
+            if (command) { sock.sendPresenceUpdate('composing', msg.key.remoteJid) }
+        }
 
+        // Handle AI commands
+        const text = msg.message?.conversation || msg.message?.extendedTextMessage?.text
+        if (text) {
+            if (text.startsWith('.ai ')) {
+                const query = text.slice(4).trim()
+                if (!query) {
+                    await sock.sendMessage(msg.key.remoteJid, { text: "Silakan masukkan pertanyaan setelah .ai, contoh: .ai Apa itu AI?" })
+                    return
+                }
+                try {
+                    const result = await model.generateContent(query)
+                    const response = await result.response
+                    const answer = response.text()
+                    await sock.sendMessage(msg.key.remoteJid, { text: answer })
+                } catch (error) {
+                    console.error("Error calling Gemini API:", error)
+                    await sock.sendMessage(msg.key.remoteJid, { text: "Maaf, terjadi kesalahan saat memproses pertanyaan Anda." })
+                }
+            }
+        }
 
         if (global.settings.autoreact && msg.key.remoteJid === 'status@broadcast') {
             if (msg.key.fromMe) return
@@ -119,6 +144,7 @@ if (command) { xyu.sendPresenceUpdate('composing', from)}}
             await sock.readMessages([msg.key])
             const timestamp = Date.now()
             const dateObject = new Date(timestamp)
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
             const dayName = days[dateObject.getDay()]
             const date = dateObject.getDate()
             const month = dateObject.getMonth() + 1
@@ -130,32 +156,38 @@ if (command) { xyu.sendPresenceUpdate('composing', from)}}
             console.log("- Pesan: ", msg.message.extendedTextMessage?.text || null)
         }
     })
+
     const callSpamTracker = {}
 
-sock.ev.on('call', async (update) => {
-    for (const call of update) {
-        const jid = call.chatId
+    sock.ev.on('call', async (update) => {
+        for (const call of update) {
+            const jid = call.chatId
 
-        if (global.settings.anticall && call.status === 'offer') {
-            if (!callSpamTracker[jid]) {
-                callSpamTracker[jid] = 1
-            } else {
-                callSpamTracker[jid]++
-            }
-            await sock.rejectCall(call.id, call.from)
-            await sock.sendMessage(jid, { text: `⚠️ Jangan melakukan panggilan! (${callSpamTracker[jid]}/5)` })
-            console.log(`Panggilan dari ${jid} ke-${callSpamTracker[jid]} ditolak.`)
-            if (callSpamTracker[jid] >= 5) {
-                await sock.sendMessage(jid, { text: `Kamu telah diblokir karena melakukan spam panggilan.` })
-                await sock.updateBlockStatus(jid, 'block')
-                console.log(`🔒 ${jid} telah diblokir karena spam call.`)
-                delete callSpamTracker[jid]
+            if (global.settings.anticall && call.status === 'offer') {
+                if (!callSpamTracker[jid]) {
+                    callSpamTracker[jid] = 1
+                } else {
+                    callSpamTracker[jid]++
+                }
+
+                await sock.rejectCall(call.id, call.from)
+                await sock.sendMessage(jid, { text: `⚠️ Jangan melakukan panggilan! (${callSpamTracker[jid]}/5)` })
+                console.log(`Panggilan dari ${jid} ke-${callSpamTracker[jid]} ditolak.`)
+
+                if (callSpamTracker[jid] >= 5) {
+                    await sock.sendMessage(jid, { text: `Kamu telah diblokir karena melakukan spam panggilan.` })
+                    await sock.updateBlockStatus(jid, 'block')
+                    console.log(`🔒 ${jid} telah diblokir karena spam call.`)
+                    delete callSpamTracker[jid]
+
+                    setTimeout(async () => {
+                        await sock.updateBlockStatus(jid, 'unblock')
+                        console.log(`🔓 ${jid} telah di-unblock setelah 24 jam.`)
+                    }, 24 * 60 * 60 * 1000)
+                }
             }
         }
-    }
-})
-
-    
+    })
 
     sock.ev.on('creds.update', saveCreds)
 }
