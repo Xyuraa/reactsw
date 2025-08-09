@@ -8,7 +8,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai")
 require('./settings')
 
 // Initialize Gemini AI with API key
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyBKOlaxWPG93FlJJMIggVYYAYZ126sHqvw")
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "MASUKAN API GEMINI LU!!!")
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
 const question = (text) => {
