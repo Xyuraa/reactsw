@@ -16,8 +16,8 @@ Bot whatsapp otomatis untuk memberi reaksi (reaction emoji) pada **status WhatsA
 ### 1. Clone Repo
 
 ```bash
-git clone https://github.com/username/auto-react-status-wa.git
-cd auto-react-status-wa
+git clone https://github.com/Xyuraa/reactsw.git
+cd reactsw
 ```
 
 ### 2. Install Dependensi
